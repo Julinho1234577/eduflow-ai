@@ -4,39 +4,30 @@ services:
     image: postgres:17
     container_name: eduflow-postgres
     restart: unless-stopped
-
     environment:
       POSTGRES_DB: eduflow_ai
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-
     ports:
       - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d eduflow_ai"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-
     container_name: eduflow-backend
     restart: unless-stopped
-
     working_dir: /var/www
-
     depends_on:
       postgres:
         condition: service_healthy
-
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -48,32 +39,24 @@ services:
       DB_DATABASE: eduflow_ai
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-
     ports:
       - "8000:8000"
-
     volumes:
       - ./backend:/var/www
-
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-
     container_name: eduflow-frontend
     restart: unless-stopped
-
     depends_on:
       - backend
-
     ports:
       - "5173:5173"
-
     volumes:
       - ./frontend:/app
       - /app/node_modules
-
 
 volumes:
   postgres_data:
