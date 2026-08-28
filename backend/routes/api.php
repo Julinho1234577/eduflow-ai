@@ -11,6 +11,7 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,7 +33,7 @@ use App\Http\Controllers\DashboardController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+
 // ============================================================================
 // RUTAS PROTEGIDAS
 // ============================================================================
@@ -47,26 +48,40 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // ============================================================================
-// USUARIOS DISPONIBLES PARA CREAR DOCENTES
-// ============================================================================
+
+    // =========================================================================
+    // DASHBOARD
+    // =========================================================================
+    //
+    // Solo usuarios autenticados con rol admin o docente.
+    //
+
+    Route::middleware('role:admin,docente')->group(function () {
+
+        Route::get(
+            '/dashboard/stats',
+            [DashboardController::class, 'stats']
+        );
+    });
+
+
+    // =========================================================================
+    // USUARIOS DISPONIBLES PARA CREAR DOCENTES
+    // =========================================================================
 
     Route::middleware('role:admin')->group(function () {
 
         Route::get(
-             '/users/teachers/available',
+            '/users/teachers/available',
             [UserController::class, 'availableTeachers']
-       );
-
+        );
     });
+
+
     // =========================================================================
-    // USUARIOS
+    // USUARIOS DISPONIBLES PARA CREAR ESTUDIANTES
     // =========================================================================
 
-    // Solo ADMIN
-    //
-    // Devuelve usuarios con rol estudiante
-    // que todavía no tienen registro en students.
     Route::middleware('role:admin')->group(function () {
 
         Route::get(
@@ -293,7 +308,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //   Puede consultar solamente las matrículas relacionadas
     //   con sus propios cursos.
     //
-    // El EnrollmentController realiza la validación.
+    // EnrollmentController realiza la validación.
     // -------------------------------------------------------------------------
 
     Route::middleware('role:admin,docente')->group(function () {
@@ -477,3 +492,4 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 });
+
