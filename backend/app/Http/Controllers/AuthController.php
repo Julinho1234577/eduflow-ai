@@ -11,10 +11,25 @@ class AuthController extends Controller
 {
     public function login(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = User::where('email', $validated['email'])->first();
+
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
+            return response()->json([
+                'message' => 'Las credenciales son incorrectas.'
+            ], 401);
+        }
+
+        $token = $user->createToken('eduflow-api')->plainTextToken;
+
         return response()->json([
-            'content_type' => $request->header('Content-Type'),
-            'all' => $request->all(),
-            'raw' => $request->getContent(),
+            'message' => 'Inicio de sesión exitoso.',
+            'token' => $token,
+            'user' => $user,
         ]);
     }
 
