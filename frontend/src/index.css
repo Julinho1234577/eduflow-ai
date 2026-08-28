@@ -797,3 +797,1182 @@ tbody tr:last-child td {
         padding: 18px;
     }
 }
+
+/* =========================================================
+   EDUFLOW AI - DASHBOARD ESTUDIANTE
+   ========================================================= */
+
+.student-dashboard {
+    min-height: 100vh;
+    background: #f5f7fb;
+    color: #1f2937;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.student-header {
+    height: 76px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 40px;
+
+    position: sticky;
+    top: 0;
+    z-index: 20;
+
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+.student-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.student-brand-icon {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eff6ff;
+    border-radius: 11px;
+
+    font-size: 21px;
+}
+
+.student-brand h1 {
+    margin: 0;
+    color: #2563eb;
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.student-brand p {
+    margin: 2px 0 0;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.student-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.student-avatar {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #2563eb;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.student-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.student-user-info strong {
+    font-size: 13px;
+    color: #111827;
+}
+
+.student-user-info span {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.student-logout-button {
+    margin-left: 10px;
+
+    border: 1px solid #e5e7eb;
+    background: white;
+
+    color: #475569;
+
+    padding: 9px 14px;
+    border-radius: 8px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    transition: 0.2s;
+}
+
+.student-logout-button:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* =========================================================
+   CONTENIDO
+   ========================================================= */
+
+.student-content {
+    width: 100%;
+    max-width: 1400px;
+
+    margin: 0 auto;
+
+    padding: 34px 40px 50px;
+}
+
+/* =========================================================
+   BIENVENIDA
+   ========================================================= */
+
+.student-welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 28px;
+}
+
+.student-welcome-label {
+    display: inline-block;
+
+    margin-bottom: 7px;
+
+    color: #2563eb;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+}
+
+.student-welcome h2 {
+    margin: 0 0 7px;
+
+    color: #111827;
+
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.student-welcome p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+.student-session {
+    min-width: 170px;
+
+    padding: 14px 17px;
+
+    background: white;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 11px;
+}
+
+.student-session span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+.student-session strong {
+    color: #16a34a;
+    font-size: 12px;
+}
+
+.student-session i {
+    display: inline-block;
+
+    width: 7px;
+    height: 7px;
+
+    margin-right: 5px;
+
+    background: #22c55e;
+
+    border-radius: 50%;
+}
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.student-error {
+    margin-bottom: 20px;
+
+    padding: 13px 16px;
+
+    background: #fef2f2;
+
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+
+    color: #b91c1c;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* =========================================================
+   ESTADÍSTICAS
+   ========================================================= */
+
+.student-stats-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 17px;
+
+    margin-bottom: 30px;
+}
+
+.student-stat-card {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 20px;
+
+    background: white;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 13px;
+
+    text-align: left;
+
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.035);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        border-color 0.2s;
+}
+
+button.student-stat-card {
+    cursor: pointer;
+}
+
+.student-stat-card:hover {
+    transform: translateY(-2px);
+
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 8px 20px rgba(37, 99, 235, 0.08);
+}
+
+.student-stat-icon {
+    width: 48px;
+    height: 48px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    font-size: 21px;
+}
+
+.student-stat-icon.blue {
+    background: #eff6ff;
+}
+
+.student-stat-icon.purple {
+    background: #f5f3ff;
+}
+
+.student-stat-icon.green {
+    background: #f0fdf4;
+}
+
+.student-stat-icon.orange {
+    background: #fff7ed;
+}
+
+.student-stat-card span {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+.student-stat-card strong {
+    display: block;
+
+    color: #111827;
+
+    font-size: 24px;
+    line-height: 1.1;
+}
+
+.student-stat-card small {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+}
+
+/* =========================================================
+   SECCIONES
+   ========================================================= */
+
+.student-section {
+    margin-bottom: 25px;
+
+    padding: 23px;
+
+    background: white;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.035);
+}
+
+.student-section-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 20px;
+}
+
+.student-section-header h3 {
+    margin: 0 0 4px;
+
+    color: #111827;
+
+    font-size: 17px;
+}
+
+.student-section-header span {
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+.student-secondary-button {
+    flex-shrink: 0;
+
+    border: 1px solid #dbe3ef;
+
+    background: white;
+
+    color: #2563eb;
+
+    padding: 8px 13px;
+
+    border-radius: 8px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.student-secondary-button:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+/* =========================================================
+   MÓDULOS
+   ========================================================= */
+
+.student-modules-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+.student-module-card {
+    position: relative;
+
+    min-height: 165px;
+
+    padding: 19px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+
+    background: white;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        border-color 0.2s;
+}
+
+.student-module-card:hover {
+    transform: translateY(-2px);
+
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 8px 20px rgba(37, 99, 235, 0.08);
+}
+
+.module-icon {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 14px;
+
+    border-radius: 10px;
+
+    font-size: 20px;
+}
+
+.module-icon.blue {
+    background: #eff6ff;
+}
+
+.module-icon.purple {
+    background: #f5f3ff;
+}
+
+.module-icon.green {
+    background: #f0fdf4;
+}
+
+.student-module-card strong {
+    margin-bottom: 5px;
+
+    color: #111827;
+
+    font-size: 14px;
+}
+
+.student-module-card small {
+    max-width: 260px;
+
+    color: #64748b;
+
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.module-arrow {
+    position: absolute;
+
+    right: 17px;
+    bottom: 17px;
+
+    color: #2563eb;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* =========================================================
+   CURSOS
+   ========================================================= */
+
+.student-course-list {
+    display: flex;
+    flex-direction: column;
+
+    border-top: 1px solid #f1f5f9;
+}
+
+.student-course-item {
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    padding: 14px 4px;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.student-course-item:last-child {
+    border-bottom: none;
+}
+
+.student-course-icon {
+    width: 39px;
+    height: 39px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    background: #eff6ff;
+
+    border-radius: 9px;
+
+    font-size: 17px;
+}
+
+.student-course-info {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.student-course-info strong {
+    color: #1e293b;
+
+    font-size: 13px;
+}
+
+.student-course-info span {
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+.student-status {
+    padding: 5px 9px;
+
+    background: #f0fdf4;
+
+    color: #15803d;
+
+    border-radius: 20px;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* =========================================================
+   DOS COLUMNAS
+   ========================================================= */
+
+.student-two-columns {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 25px;
+}
+
+.student-two-columns .student-section {
+    margin-bottom: 25px;
+}
+
+/* =========================================================
+   NOTAS
+   ========================================================= */
+
+.student-grade-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-grade-item {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 13px 0;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.student-grade-item:last-child {
+    border-bottom: none;
+}
+
+.student-grade-item > div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.student-grade-item > div strong {
+    color: #1e293b;
+
+    font-size: 12px;
+}
+
+.student-grade-item > div span {
+    color: #94a3b8;
+
+    font-size: 10px;
+}
+
+.student-grade-value {
+    min-width: 48px;
+
+    padding: 6px 8px;
+
+    border-radius: 7px;
+
+    text-align: center;
+
+    font-size: 13px;
+}
+
+.grade-good {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.grade-medium {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+.grade-low {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* =========================================================
+   ASISTENCIAS
+   ========================================================= */
+
+.student-attendance-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-attendance-item {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 13px 0;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.student-attendance-item:last-child {
+    border-bottom: none;
+}
+
+.student-attendance-item > div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.student-attendance-item strong {
+    color: #1e293b;
+
+    font-size: 12px;
+}
+
+.student-attendance-item span {
+    color: #94a3b8;
+
+    font-size: 10px;
+}
+
+.student-attendance-status {
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    font-size: 10px !important;
+    font-weight: 700;
+}
+
+.attendance-present {
+    background: #dcfce7;
+    color: #15803d !important;
+}
+
+.attendance-absent {
+    background: #fee2e2;
+    color: #b91c1c !important;
+}
+
+.attendance-late {
+    background: #fef3c7;
+    color: #a16207 !important;
+}
+
+.attendance-justified {
+    background: #dbeafe;
+    color: #1d4ed8 !important;
+}
+
+/* =========================================================
+   ESTADOS
+   ========================================================= */
+
+.student-loading,
+.student-empty {
+    padding: 30px 10px;
+
+    text-align: center;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.student-footer {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 20px 5px;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+.student-footer > div:first-child {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.student-footer strong {
+    color: #2563eb;
+
+    font-size: 13px;
+}
+
+.student-footer span {
+    color: #94a3b8;
+
+    font-size: 10px;
+}
+
+.student-footer-stats {
+    display: flex;
+
+    gap: 18px;
+}
+
+.student-footer-stats span {
+    color: #64748b;
+}
+
+.student-footer-stats strong {
+    margin-left: 3px;
+
+    color: #334155;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+    .student-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .student-modules-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 800px) {
+    .student-header {
+        height: auto;
+
+        padding: 16px 20px;
+
+        gap: 15px;
+    }
+
+    .student-user-info {
+        display: none;
+    }
+
+    .student-logout-button {
+        margin-left: 0;
+    }
+
+    .student-content {
+        padding: 25px 18px 40px;
+    }
+
+    .student-welcome {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 18px;
+    }
+
+    .student-session {
+        width: 100%;
+    }
+
+    .student-two-columns {
+        grid-template-columns: 1fr;
+
+        gap: 0;
+    }
+
+    .student-footer {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .student-header {
+        padding: 14px 16px;
+    }
+
+    .student-brand h1 {
+        font-size: 18px;
+    }
+
+    .student-brand p {
+        display: none;
+    }
+
+    .student-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .student-modules-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .student-welcome h2 {
+        font-size: 23px;
+    }
+
+    .student-section {
+        padding: 18px;
+    }
+
+    .student-section-header {
+        align-items: flex-start;
+    }
+
+    .student-footer-stats {
+        flex-wrap: wrap;
+    }
+}
+/* =========================================================
+   PAGINACIÓN DE NOTAS
+   ========================================================= */
+
+.grades-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    padding: 20px 24px;
+
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.pagination-numbers {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pagination-button,
+.pagination-number {
+    min-width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        border-color 0.2s,
+        color 0.2s,
+        transform 0.1s;
+}
+
+.pagination-button {
+    padding: 0 13px;
+
+    border: 1px solid #d1d5db;
+
+    background: white;
+
+    color: #374151;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.pagination-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.pagination-number {
+    padding: 0;
+
+    border: 1px solid #d1d5db;
+
+    background: white;
+
+    color: #374151;
+}
+
+.pagination-number:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+
+.pagination-number.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: white;
+}
+
+.pagination-dots {
+    min-width: 30px;
+
+    text-align: center;
+
+    color: #94a3b8;
+
+    font-weight: 700;
+}
+
+.pagination-info {
+    padding: 0 24px 18px;
+
+    text-align: center;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   PAGINACIÓN RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 600px) {
+    .grades-pagination {
+        flex-wrap: wrap;
+
+        padding: 16px;
+    }
+
+    .pagination-button {
+        font-size: 12px;
+        padding: 0 10px;
+    }
+
+    .pagination-number {
+        min-width: 34px;
+        height: 34px;
+    }
+
+    .pagination-numbers {
+        gap: 4px;
+    }
+}
+
+/* =========================================================
+   PAGINACIÓN - NOTAS
+   ========================================================= */
+
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    padding: 20px;
+
+    border-top: 1px solid #e5e7eb;
+
+    background: #ffffff;
+}
+
+.pagination-button {
+    min-width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 10px;
+
+    border: 1px solid #dbe3ef;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #475569;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        border-color 0.2s,
+        color 0.2s,
+        transform 0.1s;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+
+.pagination-button:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.pagination-button.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.pagination-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-dots {
+    min-width: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #94a3b8;
+
+    font-weight: 700;
+}
+
+.pagination-info {
+    padding: 0 20px 18px;
+
+    text-align: center;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+.pagination-info strong {
+    color: #475569;
+}
+
+@media (max-width: 600px) {
+    .pagination-container {
+        gap: 4px;
+        padding: 16px 10px;
+    }
+
+    .pagination-button {
+        min-width: 32px;
+        height: 32px;
+
+        padding: 0 7px;
+
+        font-size: 12px;
+    }
+
+    .pagination-info {
+        padding-bottom: 15px;
+
+        font-size: 11px;
+    }
+}
+

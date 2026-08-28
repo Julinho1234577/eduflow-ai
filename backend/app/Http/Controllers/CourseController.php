@@ -19,25 +19,19 @@ class CourseController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $search = trim($request->input('search', ''));
 
-        $query = Course::with('teacher');
-
-        if ($user->role === 'docente') {
-            $teacher = $user->teacher;
-
-            if (!$teacher) {
-                return response()->json([
-                    'message' => 'El usuario docente no tiene un perfil de docente asociado.',
-                ], 403, [], JSON_UNESCAPED_UNICODE);
-            }
-
-            $query->where('teacher_id', $teacher->id);
-        }
-
-        $courses = $query
-            ->orderBy('id')
-            ->get();
+        $courses = Course::with([
+            'teacher.user',
+        ])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'ILIKE', '%' . $search . '%')
+                        ->orWhere('code', 'ILIKE', '%' . $search . '%');
+                });
+            })
+            ->orderBy('id', 'asc')
+            ->paginate(20);
 
         return response()->json(
             $courses,

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class TeacherController extends Controller
@@ -12,20 +15,24 @@ class TeacherController extends Controller
     /**
      * Listar todos los docentes.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $teachers = Teacher::with('user')->get();
+        $search = $request->input('search');
 
-        return response()->json(
-            $teachers,
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
+        $teachers = Teacher::with('user')
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'ILIKE', '%' . $search . '%');
+                });
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(20);
+
+        return response()->json($teachers);
     }
 
     /**
-     * Crear un docente.
+     * Crear un docente y su usuario.
      */
     public function store(Request $request): JsonResponse
     {
@@ -38,13 +45,28 @@ class TeacherController extends Controller
         }
 
         $validator = Validator::make($data, [
-            'user_id' => [
+
+            // DATOS DEL USUARIO
+            'name' => [
                 'required',
-                'integer',
-                'exists:users,id',
-                'unique:teachers,user_id',
+                'string',
+                'max:255',
             ],
 
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+            ],
+
+            // DATOS DEL DOCENTE
             'teacher_code' => [
                 'required',
                 'string',
@@ -85,16 +107,48 @@ class TeacherController extends Controller
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $teacher = Teacher::create(
-            $validator->validated()
-        );
+        $validated = $validator->validated();
 
-        return response()->json(
-            $teacher->load('user'),
-            201,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
+        try {
+
+            $teacher = DB::transaction(function () use ($validated) {
+
+                /*
+                 * Crear usuario
+                 */
+                $user = User::create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                    'role' => 'docente',
+                ]);
+
+                /*
+                 * Crear docente
+                 */
+                return Teacher::create([
+                    'user_id' => $user->id,
+                    'teacher_code' => $validated['teacher_code'],
+                    'document_number' => $validated['document_number'],
+                    'specialty' => $validated['specialty'] ?? null,
+                    'phone' => $validated['phone'] ?? null,
+                    'address' => $validated['address'] ?? null,
+                ]);
+            });
+
+            return response()->json(
+                $teacher->load('user'),
+                201,
+                [],
+                JSON_UNESCAPED_UNICODE
+            );
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'message' => 'No se pudo crear el docente.',
+                'error' => $e->getMessage(),
+            ], 500, [], JSON_UNESCAPED_UNICODE);
+        }
     }
 
     /**
@@ -117,10 +171,7 @@ class TeacherController extends Controller
         Request $request,
         Teacher $teacher
     ): JsonResponse {
-        /*
-         * Para PUT/PATCH leemos directamente
-         * el JSON recibido.
-         */
+
         $data = $request->json()->all();
 
         if (!is_array($data)) {
@@ -130,6 +181,27 @@ class TeacherController extends Controller
         }
 
         $validator = Validator::make($data, [
+
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+            ],
+
+            'email' => [
+                'sometimes',
+                'email',
+                'max:255',
+                'unique:users,email,' . $teacher->user_id,
+            ],
+
+            'password' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'min:6',
+            ],
+
             'teacher_code' => [
                 'sometimes',
                 'string',
@@ -173,29 +245,69 @@ class TeacherController extends Controller
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        /*
-         * Actualizar solamente los campos enviados.
-         */
-        $teacher->update(
-            $validator->validated()
-        );
+        $validated = $validator->validated();
 
-        /*
-         * Volver a consultar el registro desde la base de datos.
-         */
-        $teacher->refresh();
+        try {
 
-        /*
-         * Cargar nuevamente el usuario relacionado.
-         */
-        $teacher->load('user');
+            DB::transaction(function () use ($teacher, $validated) {
 
-        return response()->json(
-            $teacher,
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
+                /*
+                 * Actualizar datos del docente
+                 */
+                $teacherData = collect($validated)
+                    ->only([
+                        'teacher_code',
+                        'document_number',
+                        'specialty',
+                        'phone',
+                        'address',
+                    ])
+                    ->toArray();
+
+                if (!empty($teacherData)) {
+                    $teacher->update($teacherData);
+                }
+
+                /*
+                 * Actualizar datos del usuario
+                 */
+                $userData = [];
+
+                if (isset($validated['name'])) {
+                    $userData['name'] = $validated['name'];
+                }
+
+                if (isset($validated['email'])) {
+                    $userData['email'] = $validated['email'];
+                }
+
+                if (!empty($validated['password'])) {
+                    $userData['password'] = Hash::make(
+                        $validated['password']
+                    );
+                }
+
+                if (!empty($userData)) {
+                    $teacher->user->update($userData);
+                }
+            });
+
+            $teacher->refresh();
+            $teacher->load('user');
+
+            return response()->json(
+                $teacher,
+                200,
+                [],
+                JSON_UNESCAPED_UNICODE
+            );
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'message' => 'No se pudo actualizar el docente.',
+                'error' => $e->getMessage(),
+            ], 500, [], JSON_UNESCAPED_UNICODE);
+        }
     }
 
     /**
@@ -210,4 +322,3 @@ class TeacherController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
-

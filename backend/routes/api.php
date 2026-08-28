@@ -10,7 +10,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\AttendanceController;
-
+use App\Http\Controllers\DashboardController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,13 +32,12 @@ use App\Http\Controllers\AttendanceController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
-
+Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 // ============================================================================
 // RUTAS PROTEGIDAS
 // ============================================================================
 
 Route::middleware('auth:sanctum')->group(function () {
-
 
     // =========================================================================
     // USUARIO AUTENTICADO
@@ -47,14 +46,35 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // ============================================================================
+// USUARIOS DISPONIBLES PARA CREAR DOCENTES
+// ============================================================================
+
     Route::middleware('role:admin')->group(function () {
 
         Route::get(
-              '/users/students/available',
-              [UserController::class, 'availableStudents']
-        );
+             '/users/teachers/available',
+            [UserController::class, 'availableTeachers']
+       );
 
     });
+    // =========================================================================
+    // USUARIOS
+    // =========================================================================
+
+    // Solo ADMIN
+    //
+    // Devuelve usuarios con rol estudiante
+    // que todavía no tienen registro en students.
+    Route::middleware('role:admin')->group(function () {
+
+        Route::get(
+            '/users/students/available',
+            [UserController::class, 'availableStudents']
+        );
+    });
+
 
     // =========================================================================
     // ESTUDIANTE AUTENTICADO
@@ -62,25 +82,40 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('role:estudiante')->group(function () {
 
+        // ---------------------------------------------------------------------
         // Matrículas propias
+        // ---------------------------------------------------------------------
+
         Route::get(
             '/my/enrollments',
             [EnrollmentController::class, 'myEnrollments']
         );
 
+
+        // ---------------------------------------------------------------------
         // Notas propias
+        // ---------------------------------------------------------------------
+
         Route::get(
             '/my/grades',
             [GradeController::class, 'myGrades']
         );
 
+
+        // ---------------------------------------------------------------------
         // Resumen de notas propio
+        // ---------------------------------------------------------------------
+
         Route::get(
             '/my/grades/summary',
             [GradeController::class, 'myGradesSummary']
         );
 
+
+        // ---------------------------------------------------------------------
         // Asistencias propias
+        // ---------------------------------------------------------------------
+
         Route::get(
             '/my/attendances',
             [AttendanceController::class, 'myAttendances']
@@ -92,8 +127,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // ESTUDIANTES
     // =========================================================================
 
+    // -------------------------------------------------------------------------
     // ADMIN + DOCENTE
-    // Solo consulta.
+    // Solo consulta
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin,docente')->group(function () {
 
         Route::get(
@@ -108,8 +146,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
+    // -------------------------------------------------------------------------
     // ADMIN
-    // CRUD completo de estudiantes.
+    // CRUD completo
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin')->group(function () {
 
         Route::post(
@@ -138,7 +179,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // DOCENTES
     // =========================================================================
 
+    // -------------------------------------------------------------------------
     // SOLO ADMIN
+    // CRUD completo
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin')->group(function () {
 
         Route::get(
@@ -177,12 +222,19 @@ Route::middleware('auth:sanctum')->group(function () {
     // CURSOS
     // =========================================================================
 
+    // -------------------------------------------------------------------------
     // ADMIN + DOCENTE
-    // GET:
-    // - Admin: todos los cursos.
-    // - Docente: solamente sus cursos.
+    // Consulta
     //
-    // CourseController realiza la validación de propiedad.
+    // Admin:
+    //   Puede consultar todos los cursos.
+    //
+    // Docente:
+    //   Puede consultar solamente sus propios cursos.
+    //
+    // CourseController realiza la validación correspondiente.
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin,docente')->group(function () {
 
         Route::get(
@@ -197,8 +249,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
+    // -------------------------------------------------------------------------
     // ADMIN
-    // CRUD de cursos.
+    // CRUD completo
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin')->group(function () {
 
         Route::post(
@@ -227,16 +282,20 @@ Route::middleware('auth:sanctum')->group(function () {
     // MATRÍCULAS
     // =========================================================================
 
+    // -------------------------------------------------------------------------
     // ADMIN + DOCENTE
+    // Solo consulta
     //
     // Admin:
-    //   Puede consultar todas.
+    //   Puede consultar todas las matrículas.
     //
     // Docente:
-    //   Solo puede consultar matrículas de sus propios cursos.
+    //   Puede consultar solamente las matrículas relacionadas
+    //   con sus propios cursos.
     //
-    // IMPORTANTE:
-    //   El docente NO puede crear, modificar ni eliminar matrículas.
+    // El EnrollmentController realiza la validación.
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin,docente')->group(function () {
 
         Route::get(
@@ -251,8 +310,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
+    // -------------------------------------------------------------------------
     // ADMIN
-    // CRUD de matrículas.
+    // CRUD completo
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin')->group(function () {
 
         Route::post(
@@ -281,13 +343,19 @@ Route::middleware('auth:sanctum')->group(function () {
     // NOTAS
     // =========================================================================
 
-    // CONSULTA
+    // -------------------------------------------------------------------------
+    // ADMIN + DOCENTE
+    // Consulta
     //
     // Admin:
     //   Puede consultar todas las notas.
     //
     // Docente:
-    //   Solo puede consultar notas de sus propios cursos.
+    //   Puede consultar solamente las notas de sus propios cursos.
+    //
+    // GradeController realiza la validación.
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin,docente')->group(function () {
 
         Route::get(
@@ -302,15 +370,20 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
-    // GESTIÓN
+    // -------------------------------------------------------------------------
+    // ADMIN + DOCENTE
+    // Gestión
     //
     // Admin:
     //   Puede crear, modificar y eliminar cualquier nota.
     //
     // Docente:
-    //   Puede crear, modificar y eliminar notas SOLO de sus cursos.
+    //   Puede crear, modificar y eliminar notas solamente
+    //   de sus propios cursos.
     //
-    // GradeController realiza la validación de propiedad.
+    // GradeController realiza la validación.
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin,docente')->group(function () {
 
         Route::post(
@@ -339,13 +412,19 @@ Route::middleware('auth:sanctum')->group(function () {
     // ASISTENCIAS
     // =========================================================================
 
-    // CONSULTA
+    // -------------------------------------------------------------------------
+    // ADMIN + DOCENTE
+    // Consulta
     //
     // Admin:
     //   Puede consultar todas las asistencias.
     //
     // Docente:
-    //   Solo puede consultar asistencias de sus propios cursos.
+    //   Puede consultar solamente las asistencias de sus propios cursos.
+    //
+    // AttendanceController realiza la validación.
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin,docente')->group(function () {
 
         Route::get(
@@ -360,16 +439,20 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
-    // GESTIÓN
+    // -------------------------------------------------------------------------
+    // ADMIN + DOCENTE
+    // Gestión
     //
     // Admin:
     //   Puede crear, modificar y eliminar cualquier asistencia.
     //
     // Docente:
-    //   Puede crear, modificar y eliminar asistencias
-    //   SOLO de sus propios cursos.
+    //   Puede crear, modificar y eliminar asistencias solamente
+    //   de sus propios cursos.
     //
     // AttendanceController realiza la validación.
+    // -------------------------------------------------------------------------
+
     Route::middleware('role:admin,docente')->group(function () {
 
         Route::post(

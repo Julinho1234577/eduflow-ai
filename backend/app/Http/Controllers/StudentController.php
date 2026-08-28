@@ -10,11 +10,23 @@ use Illuminate\Support\Facades\Validator;
 class StudentController extends Controller
 {
     /**
-     * Listar todos los estudiantes.
+     * Listar estudiantes con búsqueda y paginación.
      */
-    public function index(): JsonResponse
+    /**
+     * Listar estudiantes con búsqueda y paginación.
+     */
+    public function index(Request $request): JsonResponse
     {
-        $students = Student::with('user')->get();
+        $search = trim($request->input('search', ''));
+
+        $students = Student::with('user')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'ILIKE', '%' . $search . '%');
+                });
+            })
+            ->orderBy('id', 'asc')
+            ->paginate(20);
 
         return response()->json(
             $students,
@@ -23,7 +35,6 @@ class StudentController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
-
     /**
      * Crear un estudiante.
      */
@@ -204,7 +215,6 @@ class StudentController extends Controller
         );
 
         $student->refresh();
-
         $student->load('user');
 
         return response()->json(
@@ -227,4 +237,3 @@ class StudentController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
-

@@ -11,22 +11,43 @@ use Illuminate\Validation\Rule;
 class AttendanceController extends Controller
 {
     /**
-     * Listar asistencias.
+     * ============================================================
+     * LISTAR ASISTENCIAS
+     * ============================================================
      *
      * ADMIN:
-     * - Puede ver todas las asistencias.
+     * - Puede ver todas.
      *
      * DOCENTE:
-     * - Solo puede ver asistencias de sus propios cursos.
+     * - Solo asistencias de sus cursos.
+     *
+     * ESTUDIANTE:
+     * - Solo sus propias asistencias.
+     *
+     * Soporta:
+     * - paginación
+     * - búsqueda
      */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
 
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no autenticado.',
+            ], 401, [], JSON_UNESCAPED_UNICODE);
+        }
+
         $query = Attendance::with([
             'enrollment.student.user',
-            'enrollment.course.teacher',
+            'enrollment.course.teacher.user',
         ]);
+
+        /*
+         * ========================================================
+         * DOCENTE
+         * ========================================================
+         */
 
         if ($user->role === 'docente') {
 
@@ -38,14 +59,157 @@ class AttendanceController extends Controller
                 ], 403, [], JSON_UNESCAPED_UNICODE);
             }
 
-            $query->whereHas('enrollment.course', function ($courseQuery) use ($teacher) {
-                $courseQuery->where('teacher_id', $teacher->id);
+            $query->whereHas(
+                'enrollment.course',
+                function ($courseQuery) use ($teacher) {
+                    $courseQuery->where(
+                        'teacher_id',
+                        $teacher->id
+                    );
+                }
+            );
+        }
+
+        /*
+         * ========================================================
+         * ESTUDIANTE
+         * ========================================================
+         */
+
+        if ($user->role === 'estudiante') {
+
+            $student = $user->student;
+
+            if (!$student) {
+                return response()->json([
+                    'message' => 'El usuario estudiante no tiene un perfil de estudiante asociado.',
+                ], 403, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            $query->whereHas(
+                'enrollment',
+                function ($enrollmentQuery) use ($student) {
+                    $enrollmentQuery->where(
+                        'student_id',
+                        $student->id
+                    );
+                }
+            );
+        }
+
+        /*
+         * ========================================================
+         * BÚSQUEDA
+         * ========================================================
+         *
+         * Ejemplos:
+         *
+         * /api/attendances?search=juan
+         * /api/attendances?search=matematica
+         * /api/attendances?search=2026
+         */
+
+        if ($request->filled('search')) {
+
+            $search = trim(
+                $request->input('search')
+            );
+
+            $query->where(function ($searchQuery) use ($search) {
+
+                /*
+                 * Nombre estudiante
+                 */
+                $searchQuery->whereHas(
+                    'enrollment.student.user',
+                    function ($userQuery) use ($search) {
+                        $userQuery->where(
+                            'name',
+                            'ILIKE',
+                            '%' . $search . '%'
+                        );
+                    }
+                );
+
+                /*
+                 * Correo estudiante
+                 */
+                $searchQuery->orWhereHas(
+                    'enrollment.student.user',
+                    function ($userQuery) use ($search) {
+                        $userQuery->where(
+                            'email',
+                            'ILIKE',
+                            '%' . $search . '%'
+                        );
+                    }
+                );
+
+                /*
+                 * Nombre curso
+                 */
+                $searchQuery->orWhereHas(
+                    'enrollment.course',
+                    function ($courseQuery) use ($search) {
+                        $courseQuery->where(
+                            'name',
+                            'ILIKE',
+                            '%' . $search . '%'
+                        );
+                    }
+                );
+
+                /*
+                 * Código curso
+                 */
+                $searchQuery->orWhereHas(
+                    'enrollment.course',
+                    function ($courseQuery) use ($search) {
+                        $courseQuery->where(
+                            'code',
+                            'ILIKE',
+                            '%' . $search . '%'
+                        );
+                    }
+                );
+
+                /*
+                 * Estado
+                 */
+                $searchQuery->orWhere(
+                    'status',
+                    'ILIKE',
+                    '%' . $search . '%'
+                );
+
+                /*
+                 * Justificación
+                 */
+                $searchQuery->orWhere(
+                    'justification',
+                    'ILIKE',
+                    '%' . $search . '%'
+                );
             });
         }
 
+        /*
+         * ========================================================
+         * PAGINACIÓN
+         * ========================================================
+         */
+
+        $perPage = min(
+            max(
+                (int) $request->input('per_page', 50),
+                1
+            ),
+            100
+        );
+
         $attendances = $query
             ->orderBy('id')
-            ->get();
+            ->paginate($perPage);
 
         return response()->json(
             $attendances,
@@ -57,11 +221,19 @@ class AttendanceController extends Controller
 
 
     /**
-     * Listar las asistencias del estudiante autenticado.
+     * ============================================================
+     * ASISTENCIAS DEL ESTUDIANTE AUTENTICADO
+     * ============================================================
      */
     public function myAttendances(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no autenticado.',
+            ], 401, [], JSON_UNESCAPED_UNICODE);
+        }
 
         $student = $user->student;
 
@@ -72,11 +244,18 @@ class AttendanceController extends Controller
         }
 
         $attendances = Attendance::with([
-            'enrollment.course.teacher',
+            'enrollment.student.user',
+            'enrollment.course.teacher.user',
         ])
-            ->whereHas('enrollment', function ($query) use ($student) {
-                $query->where('student_id', $student->id);
-            })
+            ->whereHas(
+                'enrollment',
+                function ($query) use ($student) {
+                    $query->where(
+                        'student_id',
+                        $student->id
+                    );
+                }
+            )
             ->orderBy('attendance_date')
             ->get();
 
@@ -90,16 +269,21 @@ class AttendanceController extends Controller
 
 
     /**
-     * Crear una asistencia.
+     * ============================================================
+     * CREAR ASISTENCIA
+     * ============================================================
      *
-     * SOLO DOCENTE.
-     *
-     * El docente únicamente puede registrar asistencia
-     * para estudiantes matriculados en sus propios cursos.
+     * SOLO DOCENTE
      */
     public function store(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no autenticado.',
+            ], 401, [], JSON_UNESCAPED_UNICODE);
+        }
 
         if ($user->role !== 'docente') {
             return response()->json([
@@ -128,7 +312,7 @@ class AttendanceController extends Controller
             ],
 
             'status' => [
-                'sometimes',
+                'required',
                 'string',
                 Rule::in([
                     'present',
@@ -145,8 +329,7 @@ class AttendanceController extends Controller
         ]);
 
         /*
-         * Verificar que la matrícula pertenezca
-         * a un curso del docente autenticado.
+         * Obtener matrícula.
          */
         $enrollment = Enrollment::with('course')
             ->find($validated['enrollment_id']);
@@ -157,18 +340,30 @@ class AttendanceController extends Controller
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
 
-        if ((int) $enrollment->course->teacher_id !== (int) $teacher->id) {
+        /*
+         * Verificar curso.
+         */
+        if (
+            !$enrollment->course ||
+            (int) $enrollment->course->teacher_id !==
+            (int) $teacher->id
+        ) {
             return response()->json([
                 'message' => 'No puedes registrar asistencia para un curso que no tienes asignado.',
             ], 403, [], JSON_UNESCAPED_UNICODE);
         }
 
         /*
-         * Evitar dos asistencias para el mismo estudiante
-         * en la misma fecha.
+         * Evitar duplicados.
          */
-        $exists = Attendance::where('enrollment_id', $enrollment->id)
-            ->whereDate('attendance_date', $validated['attendance_date'])
+        $exists = Attendance::where(
+            'enrollment_id',
+            $enrollment->id
+        )
+            ->whereDate(
+                'attendance_date',
+                $validated['attendance_date']
+            )
             ->exists();
 
         if ($exists) {
@@ -177,12 +372,14 @@ class AttendanceController extends Controller
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $attendance = Attendance::create($validated);
+        $attendance = Attendance::create(
+            $validated
+        );
 
         return response()->json(
             $attendance->load([
                 'enrollment.student.user',
-                'enrollment.course.teacher',
+                'enrollment.course.teacher.user',
             ]),
             201,
             [],
@@ -192,19 +389,36 @@ class AttendanceController extends Controller
 
 
     /**
-     * Mostrar una asistencia.
-     *
-     * ADMIN:
-     * - Puede consultar cualquiera.
-     *
-     * DOCENTE:
-     * - Solo puede consultar asistencias de sus cursos.
+     * ============================================================
+     * MOSTRAR ASISTENCIA
+     * ============================================================
      */
     public function show(
         Request $request,
         Attendance $attendance
     ): JsonResponse {
+
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no autenticado.',
+            ], 401, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        /*
+         * Cargar relaciones necesarias.
+         */
+        $attendance->load([
+            'enrollment.student.user',
+            'enrollment.course.teacher.user',
+        ]);
+
+        /*
+         * ========================================================
+         * DOCENTE
+         * ========================================================
+         */
 
         if ($user->role === 'docente') {
 
@@ -216,12 +430,38 @@ class AttendanceController extends Controller
                 ], 403, [], JSON_UNESCAPED_UNICODE);
             }
 
-            $attendance->load('enrollment.course');
-
             if (
                 !$attendance->enrollment ||
                 !$attendance->enrollment->course ||
-                (int) $attendance->enrollment->course->teacher_id !== (int) $teacher->id
+                (int) $attendance->enrollment->course->teacher_id !==
+                (int) $teacher->id
+            ) {
+                return response()->json([
+                    'message' => 'No tienes permisos para consultar esta asistencia.',
+                ], 403, [], JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        /*
+         * ========================================================
+         * ESTUDIANTE
+         * ========================================================
+         */
+
+        if ($user->role === 'estudiante') {
+
+            $student = $user->student;
+
+            if (!$student) {
+                return response()->json([
+                    'message' => 'El usuario estudiante no tiene un perfil de estudiante asociado.',
+                ], 403, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            if (
+                !$attendance->enrollment ||
+                (int) $attendance->enrollment->student_id !==
+                (int) $student->id
             ) {
                 return response()->json([
                     'message' => 'No tienes permisos para consultar esta asistencia.',
@@ -230,10 +470,7 @@ class AttendanceController extends Controller
         }
 
         return response()->json(
-            $attendance->load([
-                'enrollment.student.user',
-                'enrollment.course.teacher',
-            ]),
+            $attendance,
             200,
             [],
             JSON_UNESCAPED_UNICODE
@@ -242,18 +479,24 @@ class AttendanceController extends Controller
 
 
     /**
-     * Actualizar una asistencia.
+     * ============================================================
+     * ACTUALIZAR ASISTENCIA
+     * ============================================================
      *
-     * SOLO DOCENTE.
-     *
-     * El docente únicamente puede modificar asistencias
-     * pertenecientes a sus propios cursos.
+     * SOLO DOCENTE
      */
     public function update(
         Request $request,
         Attendance $attendance
     ): JsonResponse {
+
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no autenticado.',
+            ], 401, [], JSON_UNESCAPED_UNICODE);
+        }
 
         if ($user->role !== 'docente') {
             return response()->json([
@@ -270,14 +513,15 @@ class AttendanceController extends Controller
         }
 
         /*
-         * Verificar la asistencia actual.
+         * Verificar asistencia actual.
          */
         $attendance->load('enrollment.course');
 
         if (
             !$attendance->enrollment ||
             !$attendance->enrollment->course ||
-            (int) $attendance->enrollment->course->teacher_id !== (int) $teacher->id
+            (int) $attendance->enrollment->course->teacher_id !==
+            (int) $teacher->id
         ) {
             return response()->json([
                 'message' => 'No tienes permisos para modificar esta asistencia.',
@@ -315,19 +559,20 @@ class AttendanceController extends Controller
         ]);
 
         /*
-         * Si se intenta cambiar la matrícula,
-         * verificar que la nueva matrícula también
-         * pertenezca al docente.
+         * Verificar nueva matrícula si cambió.
          */
         if (isset($validated['enrollment_id'])) {
 
             $newEnrollment = Enrollment::with('course')
-                ->find($validated['enrollment_id']);
+                ->find(
+                    $validated['enrollment_id']
+                );
 
             if (
                 !$newEnrollment ||
                 !$newEnrollment->course ||
-                (int) $newEnrollment->course->teacher_id !== (int) $teacher->id
+                (int) $newEnrollment->course->teacher_id !==
+                (int) $teacher->id
             ) {
                 return response()->json([
                     'message' => 'No puedes mover la asistencia a un curso que no tienes asignado.',
@@ -336,8 +581,7 @@ class AttendanceController extends Controller
         }
 
         /*
-         * Determinar matrícula y fecha finales
-         * para validar duplicados.
+         * Valores finales.
          */
         $finalEnrollmentId =
             $validated['enrollment_id']
@@ -347,9 +591,22 @@ class AttendanceController extends Controller
             $validated['attendance_date']
             ?? $attendance->attendance_date;
 
-        $duplicate = Attendance::where('enrollment_id', $finalEnrollmentId)
-            ->whereDate('attendance_date', $finalDate)
-            ->where('id', '!=', $attendance->id)
+        /*
+         * Verificar duplicado.
+         */
+        $duplicate = Attendance::where(
+            'enrollment_id',
+            $finalEnrollmentId
+        )
+            ->whereDate(
+                'attendance_date',
+                $finalDate
+            )
+            ->where(
+                'id',
+                '!=',
+                $attendance->id
+            )
             ->exists();
 
         if ($duplicate) {
@@ -358,12 +615,14 @@ class AttendanceController extends Controller
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $attendance->update($validated);
+        $attendance->update(
+            $validated
+        );
 
         return response()->json(
             $attendance->fresh()->load([
                 'enrollment.student.user',
-                'enrollment.course.teacher',
+                'enrollment.course.teacher.user',
             ]),
             200,
             [],
@@ -373,18 +632,24 @@ class AttendanceController extends Controller
 
 
     /**
-     * Eliminar una asistencia.
+     * ============================================================
+     * ELIMINAR ASISTENCIA
+     * ============================================================
      *
-     * SOLO DOCENTE.
-     *
-     * El docente únicamente puede eliminar asistencias
-     * de sus propios cursos.
+     * SOLO DOCENTE
      */
     public function destroy(
         Request $request,
         Attendance $attendance
     ): JsonResponse {
+
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no autenticado.',
+            ], 401, [], JSON_UNESCAPED_UNICODE);
+        }
 
         if ($user->role !== 'docente') {
             return response()->json([
@@ -405,7 +670,8 @@ class AttendanceController extends Controller
         if (
             !$attendance->enrollment ||
             !$attendance->enrollment->course ||
-            (int) $attendance->enrollment->course->teacher_id !== (int) $teacher->id
+            (int) $attendance->enrollment->course->teacher_id !==
+            (int) $teacher->id
         ) {
             return response()->json([
                 'message' => 'No tienes permisos para eliminar esta asistencia.',
@@ -419,4 +685,3 @@ class AttendanceController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
-

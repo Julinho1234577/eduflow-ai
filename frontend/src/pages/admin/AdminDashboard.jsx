@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -23,26 +24,21 @@ function AdminDashboard() {
                 setLoading(true);
                 setError("");
 
-                const [
-                    studentsResponse,
-                    teachersResponse,
-                    coursesResponse,
-                    enrollmentsResponse,
-                ] = await Promise.all([
-                    api.get("/students"),
-                    api.get("/teachers"),
-                    api.get("/courses"),
-                    api.get("/enrollments"),
-                ]);
+                const response = await api.get(
+                    "/dashboard/stats"
+                );
 
                 setStats({
-                    students: getCount(studentsResponse.data),
-                    teachers: getCount(teachersResponse.data),
-                    courses: getCount(coursesResponse.data),
-                    enrollments: getCount(enrollmentsResponse.data),
+                    students: response.data?.students ?? 0,
+                    teachers: response.data?.teachers ?? 0,
+                    courses: response.data?.courses ?? 0,
+                    enrollments: response.data?.enrollments ?? 0,
                 });
             } catch (err) {
-                console.error("Error cargando dashboard:", err);
+                console.error(
+                    "Error cargando dashboard:",
+                    err
+                );
 
                 setError(
                     err.response?.data?.message ||
@@ -55,18 +51,6 @@ function AdminDashboard() {
 
         loadDashboard();
     }, []);
-
-    const getCount = (data) => {
-        if (Array.isArray(data)) {
-            return data.length;
-        }
-
-        if (Array.isArray(data?.data)) {
-            return data.data.length;
-        }
-
-        return 0;
-    };
 
     const handleLogout = async () => {
         await logout();
@@ -112,7 +96,9 @@ function AdminDashboard() {
 
                 <section className="stats-grid">
                     <div className="stat-card">
-                        <div className="stat-icon">🎓</div>
+                        <div className="stat-icon">
+                            🎓
+                        </div>
 
                         <div>
                             <span>Estudiantes</span>
@@ -126,7 +112,9 @@ function AdminDashboard() {
                     </div>
 
                     <div className="stat-card">
-                        <div className="stat-icon">👨‍🏫</div>
+                        <div className="stat-icon">
+                            👨‍🏫
+                        </div>
 
                         <div>
                             <span>Docentes</span>
@@ -140,7 +128,9 @@ function AdminDashboard() {
                     </div>
 
                     <div className="stat-card">
-                        <div className="stat-icon">📚</div>
+                        <div className="stat-icon">
+                            📚
+                        </div>
 
                         <div>
                             <span>Cursos</span>
@@ -154,7 +144,9 @@ function AdminDashboard() {
                     </div>
 
                     <div className="stat-card">
-                        <div className="stat-icon">📝</div>
+                        <div className="stat-icon">
+                            📝
+                        </div>
 
                         <div>
                             <span>Matrículas</span>
@@ -189,7 +181,12 @@ function AdminDashboard() {
                             </small>
                         </button>
 
-                        <button className="module-card">
+                        <button
+                            className="module-card"
+                            onClick={() =>
+                                navigate("/admin/teachers")
+                            }
+                        >
                             <span>👨‍🏫</span>
 
                             <strong>
@@ -201,7 +198,12 @@ function AdminDashboard() {
                             </small>
                         </button>
 
-                        <button className="module-card">
+                        <button
+                            className="module-card"
+                            onClick={() =>
+                                navigate("/admin/courses")
+                            }
+                        >
                             <span>📚</span>
 
                             <strong>
@@ -213,7 +215,12 @@ function AdminDashboard() {
                             </small>
                         </button>
 
-                        <button className="module-card">
+                        <button
+                            className="module-card"
+                            onClick={() =>
+                                navigate("/admin/enrollments")
+                            }
+                        >
                             <span>📝</span>
 
                             <strong>
@@ -225,7 +232,12 @@ function AdminDashboard() {
                             </small>
                         </button>
 
-                        <button className="module-card">
+                        <button
+                            className="module-card"
+                            onClick={() =>
+                                navigate("/admin/grades")
+                            }
+                        >
                             <span>📊</span>
 
                             <strong>
@@ -237,7 +249,12 @@ function AdminDashboard() {
                             </small>
                         </button>
 
-                        <button className="module-card">
+                        <button
+                            className="module-card"
+                            onClick={() =>
+                                navigate("/admin/attendances")
+                            }
+                        >
                             <span>📅</span>
 
                             <strong>
@@ -256,3 +273,4 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
+
